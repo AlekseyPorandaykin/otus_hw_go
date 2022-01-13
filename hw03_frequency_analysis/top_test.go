@@ -80,3 +80,19 @@ func TestTop10(t *testing.T) {
 		}
 	})
 }
+
+func TestTop10WithSimilarWords(t *testing.T) {
+	t.Run("text with similar words", func(t *testing.T) {
+		text := "аб абв аб абв абвг абвг а абвф абва"
+		expected := []string{"аб", "абв", "абвг", "а", "абва", "абвф"}
+		require.Equal(t, expected, Top10(text))
+	})
+}
+
+func TestTop10WithSpecialSymbols(t *testing.T) {
+	t.Run("text with special symbols", func(t *testing.T) {
+		text := "^a      .a  #a   *a   @a  &a "
+		expected := []string{"#a", "&a", "*a", ".a", "@a", "^a"}
+		require.Equal(t, expected, Top10(text))
+	})
+}
