@@ -18,44 +18,25 @@ type ListItem struct {
 
 type list struct {
 	firstItem *ListItem
+	lastItem  *ListItem
+	count     int
 }
 
 func (list list) Len() int {
-	count := 0
-	item := list.Front()
-	for item != nil {
-		count++
-		item = item.Next
-	}
-	return count
+	return list.count
 }
 
 func (list list) Front() *ListItem {
-	itemValue := list.firstItem
-	if itemValue == nil {
-		return itemValue
-	}
-	for itemValue.Prev != nil {
-		itemValue = itemValue.Prev
-	}
-
-	return itemValue
+	return list.firstItem
 }
 
 func (list list) Back() *ListItem {
-	itemValue := list.firstItem
-	if itemValue == nil {
-		return itemValue
-	}
-	for itemValue.Next != nil {
-		itemValue = itemValue.Next
-	}
-
-	return itemValue
+	return list.lastItem
 }
 
 func (list *list) PushFront(v interface{}) *ListItem {
 	firstItem := list.Front()
+	list.count++
 	if firstItem != nil {
 		currentPrev := &ListItem{
 			Value: v,
@@ -68,6 +49,7 @@ func (list *list) PushFront(v interface{}) *ListItem {
 	list.firstItem = &ListItem{
 		Value: v,
 	}
+	list.lastItem = list.firstItem
 	return list.firstItem
 }
 
@@ -76,6 +58,7 @@ func (list *list) PushBack(v interface{}) *ListItem {
 		Value: v,
 	}
 	list.linkValues(list.Back(), nextValue)
+	list.count++
 
 	return nextValue
 }
@@ -90,6 +73,8 @@ func (list *list) Remove(item *ListItem) {
 			list.firstItem = item.Next
 		}
 	}
+
+	list.count--
 	item.Next = nil
 	item.Prev = nil
 }
@@ -109,12 +94,19 @@ func NewList() List {
 func (list *list) linkValues(prevValue, nextValue *ListItem) *ListItem {
 	if prevValue != nil {
 		prevValue.Next = nextValue
+
+		if prevValue.Prev == nil {
+			list.firstItem = prevValue
+		}
 	}
 	if nextValue != nil {
 		nextValue.Prev = prevValue
+
+		if nextValue.Next == nil {
+			list.lastItem = nextValue
+		}
+
 	}
-	//При изменения порядка, изменяем первый элемент
-	list.firstItem = list.Front()
 
 	return prevValue
 }
