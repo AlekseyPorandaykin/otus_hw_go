@@ -35,13 +35,12 @@ func (list list) Back() *ListItem {
 }
 
 func (list *list) PushFront(v interface{}) *ListItem {
-	firstItem := list.Front()
 	list.count++
-	if firstItem != nil {
+	if list.Front() != nil {
 		currentPrev := &ListItem{
 			Value: v,
 		}
-		list.linkValues(currentPrev, firstItem)
+		list.linkValues(currentPrev, list.Front())
 
 		return currentPrev
 
