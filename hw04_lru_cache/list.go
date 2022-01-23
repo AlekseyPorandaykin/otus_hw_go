@@ -67,7 +67,6 @@ func (list *list) Remove(item *ListItem) {
 		if item.Prev != nil {
 			list.firstItem = item.Prev
 		} else {
-
 			list.firstItem = item.Next
 		}
 	}
@@ -92,7 +91,6 @@ func NewList() List {
 func (list *list) linkValues(prevValue, nextValue *ListItem) {
 	if prevValue != nil {
 		prevValue.Next = nextValue
-
 		if prevValue.Prev == nil {
 			list.firstItem = prevValue
 		}
