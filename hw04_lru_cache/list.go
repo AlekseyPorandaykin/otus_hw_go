@@ -90,7 +90,7 @@ func NewList() List {
 	return new(list)
 }
 
-func (list *list) linkValues(prevValue, nextValue *ListItem) *ListItem {
+func (list *list) linkValues(prevValue, nextValue *ListItem) {
 	if prevValue != nil {
 		prevValue.Next = nextValue
 
@@ -106,6 +106,4 @@ func (list *list) linkValues(prevValue, nextValue *ListItem) *ListItem {
 		}
 
 	}
-
-	return prevValue
 }
