@@ -14,11 +14,6 @@ type lruCache struct {
 	items    map[Key]*ListItem
 }
 
-type cacheItem struct {
-	key   Key
-	value interface{}
-}
-
 func (cache *lruCache) Set(key Key, value interface{}) bool {
 	_, itemExist := cache.items[key]
 
