@@ -43,7 +43,6 @@ func (list *list) PushFront(v interface{}) *ListItem {
 		list.linkValues(currentPrev, list.Front())
 
 		return currentPrev
-
 	}
 	list.firstItem = &ListItem{
 		Value: v,
@@ -104,6 +103,5 @@ func (list *list) linkValues(prevValue, nextValue *ListItem) {
 		if nextValue.Next == nil {
 			list.lastItem = nextValue
 		}
-
 	}
 }

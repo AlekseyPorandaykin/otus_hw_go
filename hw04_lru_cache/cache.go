@@ -16,7 +16,6 @@ type lruCache struct {
 
 func (cache *lruCache) Set(key Key, value interface{}) bool {
 	_, itemExist := cache.items[key]
-
 	if !itemExist && cache.queue.Len() >= cache.capacity {
 		lastItem := cache.queue.Back()
 		for key, value := range cache.items {
@@ -28,7 +27,6 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 		cache.queue.Remove(lastItem)
 	}
 	cache.items[key] = cache.queue.PushFront(value)
-
 	return itemExist
 }
 
