@@ -16,6 +16,12 @@ type ListItem struct {
 	Prev  *ListItem
 }
 
+func NewListItem(v interface{}) *ListItem {
+	return &ListItem{
+		Value: v,
+	}
+}
+
 type list struct {
 	firstItem *ListItem
 	lastItem  *ListItem
@@ -36,40 +42,38 @@ func (list list) Back() *ListItem {
 
 func (list *list) PushFront(v interface{}) *ListItem {
 	list.count++
-	if list.Front() != nil {
-		currentPrev := &ListItem{
-			Value: v,
-		}
-		list.linkValues(currentPrev, list.Front())
+	if list.isEmptyList() {
+		return list.addFirstValue(v)
+	}
+	firstItem := NewListItem(v)
+	list.linkValues(firstItem, list.Front())
 
-		return currentPrev
-	}
-	list.firstItem = &ListItem{
-		Value: v,
-	}
-	list.lastItem = list.firstItem
-	return list.firstItem
+	return firstItem
 }
 
 func (list *list) PushBack(v interface{}) *ListItem {
-	nextValue := &ListItem{
-		Value: v,
-	}
-	list.linkValues(list.Back(), nextValue)
 	list.count++
+	if list.isEmptyList() {
+		return list.addFirstValue(v)
+	}
+	lastItem := NewListItem(v)
+	list.linkValues(list.Back(), lastItem)
 
-	return nextValue
+	return lastItem
 }
 
 func (list *list) Remove(item *ListItem) {
-	list.linkValues(item.Prev, item.Next)
-	if item == list.firstItem {
-		if item.Prev != nil {
-			list.firstItem = item.Prev
-		} else {
-			list.firstItem = item.Next
-		}
+	if list.count == 1 && list.firstItem == item {
+		list.clear()
+		return
 	}
+	if item == list.firstItem {
+		list.firstItem = item.Next
+	}
+	if item == list.lastItem {
+		list.lastItem = item.Prev
+	}
+	list.linkValues(item.Prev, item.Next)
 
 	list.count--
 	item.Next = nil
@@ -102,4 +106,20 @@ func (list *list) linkValues(prevValue, nextValue *ListItem) {
 			list.lastItem = nextValue
 		}
 	}
+}
+
+func (list *list) addFirstValue(v interface{}) *ListItem {
+	list.firstItem = NewListItem(v)
+	list.lastItem = list.firstItem
+	return list.firstItem
+}
+
+func (list *list) clear() {
+	list.firstItem = nil
+	list.lastItem = nil
+	list.count = 0
+}
+
+func (list list) isEmptyList() bool {
+	return list.Back() == nil && list.Front() == nil
 }
