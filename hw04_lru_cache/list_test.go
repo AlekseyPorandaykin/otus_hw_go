@@ -63,8 +63,16 @@ func TestList(t *testing.T) {
 		penultimateItem := l.PushBack(4)
 		lastItem := l.PushBack(5)
 		l.Remove(firstItem)
-		require.True(t, l.Front() == secondItem, "When deleting the first value, the next value must become the first")
+		require.True(
+			t,
+			l.Front() == secondItem,
+			"When deleting the first value, the next value must become the first",
+		)
 		l.Remove(lastItem)
-		require.True(t, l.Back() == penultimateItem, "When the last value is removed, the last element is set to the penultimate one.")
+		require.True(
+			t,
+			l.Back() == penultimateItem,
+			"When the last value is removed, the last element is set to the penultimate one.",
+		)
 	})
 }
