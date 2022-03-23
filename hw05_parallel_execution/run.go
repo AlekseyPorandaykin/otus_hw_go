@@ -20,69 +20,35 @@ func (err *ErrorCounter) Add() {
 	err.count++
 }
 
-type Executor struct {
-	tasks             []Task
-	quantityGoroutine int
-	quantityErrors    int
-	errorCounter      *ErrorCounter
-	ch                chan Task
-}
-
-func (executor *Executor) isErrorLimitExceeded() bool {
-	if executor.quantityErrors <= 0 || executor.errorCounter.count >= executor.quantityErrors {
-		return true
-	}
-
-	return false
-}
-
-func NewExecutor(tasks []Task, quantityGoroutine int, quantityErrors int) *Executor {
-	return &Executor{
-		tasks:             tasks,
-		quantityGoroutine: quantityGoroutine,
-		quantityErrors:    quantityErrors,
-		errorCounter:      &ErrorCounter{},
-		ch:                make(chan Task),
-	}
-}
-
-// Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
-	executor := NewExecutor(tasks, n, m)
+	chTask := make(chan Task)
+	errorCounter := &ErrorCounter{}
 	wg := sync.WaitGroup{}
 	for i := 0; i < n; i++ {
-		consumer(executor, &wg)
+		go func() {
+			for {
+				task, ok := <-chTask
+				if ok == false {
+					return
+				}
+				if err := task(); err != nil {
+					errorCounter.Add()
+				}
+				wg.Done()
+			}
+		}()
 	}
-	err := producer(executor, &wg)
-	wg.Wait()
-	close(executor.ch)
-
-	return err
-}
-
-func consumer(executor *Executor, wg *sync.WaitGroup) {
-	go func() {
-		for {
-			task, ok := <-executor.ch
-			if ok == false {
-				return
-			}
-			if err := task(); err != nil {
-				executor.errorCounter.Add()
-			}
-			wg.Done()
-		}
-	}()
-}
-
-func producer(executor *Executor, wg *sync.WaitGroup) error {
-	for _, task := range executor.tasks {
-		if executor.isErrorLimitExceeded() {
-			return ErrErrorsLimitExceeded
+	var err error
+	for _, task := range tasks {
+		if m <= 0 || errorCounter.count >= m {
+			err = ErrErrorsLimitExceeded
+			break
 		}
 		wg.Add(1)
-		executor.ch <- task
+		chTask <- task
 	}
+	wg.Wait()
+	close(chTask)
 
-	return nil
+	return err
 }
