@@ -28,7 +28,7 @@ func Run(tasks []Task, n, m int) error {
 		go func() {
 			for {
 				task, ok := <-chTask
-				if ok == false {
+				if !ok {
 					return
 				}
 				if err := task(); err != nil {
