@@ -20,6 +20,12 @@ func (err *ErrorCounter) Add() {
 	err.count++
 }
 
+func (err *ErrorCounter) Count() int {
+	defer err.mt.Unlock()
+	err.mt.Lock()
+	return err.count
+}
+
 func Run(tasks []Task, n, m int) error {
 	chTask := make(chan Task)
 	errorCounter := &ErrorCounter{}
@@ -40,7 +46,7 @@ func Run(tasks []Task, n, m int) error {
 	}
 	var err error
 	for _, task := range tasks {
-		if m <= 0 || errorCounter.count >= m {
+		if m <= 0 || errorCounter.Count() >= m {
 			err = ErrErrorsLimitExceeded
 			break
 		}
@@ -49,6 +55,5 @@ func Run(tasks []Task, n, m int) error {
 	}
 	wg.Wait()
 	close(chTask)
-
 	return err
 }
