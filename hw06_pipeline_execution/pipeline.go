@@ -14,7 +14,7 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 		defer close(result)
 		pipeline := in
 		for _, stage := range stages {
-			pipeline = Exc(stage, pipeline, done)
+			pipeline = execStage(stage, pipeline, done)
 		}
 		for numVal := range pipeline {
 			result <- numVal
@@ -23,7 +23,7 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	return result
 }
 
-func Exc(stage Stage, in In, done In) Out {
+func execStage(stage Stage, in In, done In) Out {
 	result := make(Bi)
 	go func() {
 		defer close(result)
