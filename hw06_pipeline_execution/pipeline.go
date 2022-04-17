@@ -12,11 +12,11 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	result := make(Bi)
 	go func() {
 		defer close(result)
-		pipeline := in
+		pipelineChannel := in
 		for _, stage := range stages {
-			pipeline = execStage(stage, pipeline, done)
+			pipelineChannel = execStage(stage, pipelineChannel, done)
 		}
-		for numVal := range pipeline {
+		for numVal := range pipelineChannel {
 			result <- numVal
 		}
 	}()
