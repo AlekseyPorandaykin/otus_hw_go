@@ -9,12 +9,18 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	pipelineChannel := in
-	for _, stage := range stages {
-		pipelineChannel = execStage(stage, pipelineChannel, done)
-	}
-
-	return pipelineChannel
+	result := make(Bi)
+	go func() {
+		defer close(result)
+		pipelineChannel := in
+		for _, stage := range stages {
+			pipelineChannel = execStage(stage, pipelineChannel, done)
+		}
+		for numVal := range pipelineChannel {
+			result <- numVal
+		}
+	}()
+	return result
 }
 
 func execStage(stage Stage, in In, done In) Out {
