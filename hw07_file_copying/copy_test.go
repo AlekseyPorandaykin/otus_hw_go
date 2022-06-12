@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type testStruct struct {
@@ -46,7 +47,7 @@ func TestCopyErrors(t *testing.T) {
 		td := testData
 		t.Run(td.testName, func(t *testing.T) {
 			errCopy := Copy(td.from, td.to, td.offset, td.limit)
-			require.Equal(t, "unsupported file", errCopy.Error())
+			require.Equal(t, td.errorStr, errCopy.Error())
 			require.NoFileExists(t, td.to)
 		})
 	}
@@ -73,7 +74,7 @@ func TestCopyErrors(t *testing.T) {
 				}
 			}()
 			errCopy := Copy(td.from, file.Name(), td.offset, td.limit)
-			require.Equal(t, "unsupported file", errCopy.Error())
+			require.Equal(t, td.errorStr, errCopy.Error())
 		})
 	}
 }
@@ -112,7 +113,7 @@ func TestCopy(t *testing.T) {
 }
 
 func getSizeFile(pathToFile string) int64 {
-	file, _ := os.Open("testData/input.txt")
+	file, _ := os.Open(pathToFile)
 	info, err := file.Stat()
 	if err != nil {
 		return 0
