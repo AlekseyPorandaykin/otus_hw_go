@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"unicode"
 )
 
 var (
@@ -63,19 +62,7 @@ func generateEnvValue(dataFromFile []byte) EnvValue {
 }
 
 func isCorrectFileName(fileName string) bool {
-	return !strings.Contains(fileName, "=") && isUpperStr(fileName)
-}
-
-func isUpperStr(str string) bool {
-	for _, sym := range str {
-		if !unicode.IsLetter(sym) {
-			continue
-		}
-		if !unicode.IsUpper(sym) {
-			return false
-		}
-	}
-	return true
+	return !strings.Contains(fileName, "=")
 }
 
 func replaceTerminalNull(str string) string {

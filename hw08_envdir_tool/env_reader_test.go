@@ -36,13 +36,6 @@ func TestReadDir(t *testing.T) {
 			needRemove:    false,
 		},
 		{
-			nameTest:      "Test incorrect name file, lower symbols",
-			nameEnv:       "TEST_INCORRECT_file",
-			expectedValue: "",
-			dataFile:      "empty data",
-			needRemove:    false,
-		},
-		{
 			nameTest:      "Test replace terminal null",
 			nameEnv:       "TEST_REPLACE_TERMINAL_NULL",
 			expectedValue: "first part\nsecond part\nlast part",
