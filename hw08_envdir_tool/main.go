@@ -14,8 +14,7 @@ func main() {
 	if errRead != nil {
 		return
 	}
-	code := RunCmd(args[2:], envs)
-	if code > 0 {
+	if code := RunCmd(args[2:], envs); code > 0 {
 		fmt.Println("Error execute")
 	}
 }
