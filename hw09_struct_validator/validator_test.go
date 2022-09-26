@@ -49,11 +49,8 @@ type (
 
 func TestValidate(t *testing.T) {
 	tests := []struct {
-		in              interface{}
-		expectedErr     error
-		isValidError    bool
-		isRuleErr       bool
-		expectedTypeErr error
+		in          interface{}
+		expectedErr error
 	}{
 		{
 			in: &User{
@@ -108,9 +105,7 @@ func TestValidate(t *testing.T) {
 				Phones: []string{"18294593857"},
 				meta:   nil,
 			},
-			expectedErr:     rules.ErrMaxValueLarge,
-			expectedTypeErr: &rules.ErrValidate{},
-			isValidError:    true,
+			expectedErr: rules.ErrMaxValueLarge,
 		},
 		{
 			in: &User{
