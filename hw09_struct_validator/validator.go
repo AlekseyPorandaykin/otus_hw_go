@@ -8,20 +8,28 @@ import (
 )
 
 var (
-	RuleChecker *rules.RuleChecker
-	EOF         = "\n"
+	EOF = "\n"
 )
 
 func Validate(v interface{}) error {
-	RuleChecker = rules.NewRuleChecker()
-	validErrs, err := validateStruct(reflect.Indirect(reflect.ValueOf(v)))
+	validErrs, err := NewValidator().validateStruct(reflect.Indirect(reflect.ValueOf(v)))
 	if err != nil {
 		return err
 	}
 	return &validErrs
 }
 
-func validateStruct(v reflect.Value) (ValidationErrors, error) {
+type Validator struct {
+	ruleChecker *rules.RuleChecker
+}
+
+func NewValidator() *Validator {
+	return &Validator{
+		ruleChecker: rules.NewRuleChecker(),
+	}
+}
+
+func (valid Validator) validateStruct(v reflect.Value) (ValidationErrors, error) {
 	validErrs := ValidationErrors{}
 	t := v.Type()
 	if t.Kind() != reflect.Struct {
@@ -37,7 +45,7 @@ func validateStruct(v reflect.Value) (ValidationErrors, error) {
 		if !valueField.CanSet() {
 			continue
 		}
-		errComplexTag, err := validateComplexTagField(valueField, structField)
+		errComplexTag, err := valid.validateComplexTagField(valueField, structField)
 		if err != nil {
 			return validErrs, err
 		}
@@ -48,7 +56,7 @@ func validateStruct(v reflect.Value) (ValidationErrors, error) {
 				NestedError: errComplexTag,
 			})
 		}
-		errSimpleTag, err := validateSimpleField(valueField, structField)
+		errSimpleTag, err := valid.validateSimpleField(valueField, structField)
 		if err != nil {
 			return validErrs, err
 		}
@@ -59,14 +67,14 @@ func validateStruct(v reflect.Value) (ValidationErrors, error) {
 	return validErrs, nil
 }
 
-func validateComplexTagField(valueField reflect.Value, structField reflect.StructField) (ValidationErrors, error) {
+func (valid Validator) validateComplexTagField(valueField reflect.Value, structField reflect.StructField) (ValidationErrors, error) {
 	validErrs := ValidationErrors{}
 	switch valueField.Kind() {
 	case reflect.Slice:
 		switch str := valueField.Interface().(type) {
 		case []string:
 			for index, vls := range str {
-				validateErr, err := validateElementSlice(vls, structField, index)
+				validateErr, err := valid.validateElementSlice(vls, structField, index)
 				if err != nil {
 					return validErrs, err
 				}
@@ -76,7 +84,7 @@ func validateComplexTagField(valueField reflect.Value, structField reflect.Struc
 			}
 		case []int32:
 			for index, vls := range str {
-				validateErr, err := validateElementSlice(vls, structField, index)
+				validateErr, err := valid.validateElementSlice(vls, structField, index)
 				if err != nil {
 					return validErrs, err
 				}
@@ -91,7 +99,7 @@ func validateComplexTagField(valueField reflect.Value, structField reflect.Struc
 			return validErrs, err
 		}
 		if hasNestedTag {
-			validStructErrs, err := validateStruct(valueField)
+			validStructErrs, err := valid.validateStruct(valueField)
 			if err != nil {
 				return validErrs, err
 			}
@@ -102,7 +110,7 @@ func validateComplexTagField(valueField reflect.Value, structField reflect.Struc
 	return validErrs, nil
 }
 
-func validateSimpleField(valueField reflect.Value, structField reflect.StructField) (*ValidationError, error) {
+func (valid Validator) validateSimpleField(valueField reflect.Value, structField reflect.StructField) (*ValidationError, error) {
 	var value interface{}
 	switch valueField.Kind() {
 	case reflect.Int:
@@ -112,15 +120,15 @@ func validateSimpleField(valueField reflect.Value, structField reflect.StructFie
 	default:
 		return nil, nil
 	}
-	validErr := RuleChecker.Valid([]byte(structField.Tag), value)
+	validErr := valid.ruleChecker.Valid([]byte(structField.Tag), value)
 	if validErr != nil {
 		return &ValidationError{Field: structField.Name, Err: validErr}, nil
 	}
 	return nil, nil
 }
 
-func validateElementSlice(val interface{}, structField reflect.StructField, index int) (*ValidationError, error) {
-	validErr, err := validateSimpleField(reflect.ValueOf(val), structField)
+func (valid Validator) validateElementSlice(val interface{}, structField reflect.StructField, index int) (*ValidationError, error) {
+	validErr, err := valid.validateSimpleField(reflect.ValueOf(val), structField)
 	if validErr == nil || err != nil {
 		return nil, err
 	}
