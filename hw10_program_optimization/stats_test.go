@@ -3,10 +3,10 @@
 package hw10programoptimization
 
 import (
+	"archive/zip"
 	"bytes"
-	"testing"
-
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestGetDomainStat(t *testing.T) {
@@ -35,5 +35,43 @@ func TestGetDomainStat(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "unknown")
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
+	})
+}
+
+//go test -bench=BenchmarkGetDomainStat -benchmem -count 1
+func BenchmarkGetDomainStat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		r, _ := zip.OpenReader("testdata/users.dat.zip")
+		data, _ := r.File[0].Open()
+		GetDomainStat(data, "biz")
+	}
+}
+
+func TestGetDomainStatIncorrectData(t *testing.T) {
+	t.Run("Empty data", func(t *testing.T) {
+		data := ""
+		result, err := GetDomainStat(bytes.NewBufferString(data), "gov")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+	t.Run("Plain text", func(t *testing.T) {
+		data := "plain text"
+		result, err := GetDomainStat(bytes.NewBufferString(data), "gov")
+		require.Contains(t, err.Error(), "get users error:")
+		require.Equal(t, "get users error: parse error: syntax error near offset 0 of 'plain text'", err.Error())
+		require.Nil(t, result)
+	})
+
+	t.Run("Incorrect email", func(t *testing.T) {
+		data := `{"Id":5,"Name":"Janice Rose","Username":"KeithHart","Email":"nulla","Phone":"146-91-01","Password":"acSBF5","Address":"Russell Trail 61"}`
+		result, err := GetDomainStat(bytes.NewBufferString(data), "gov")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+	t.Run("Incorrect json", func(t *testing.T) {
+		data := `{"Id":5,"Name":"ddress":"Russell Trail 61"}`
+		result, err := GetDomainStat(bytes.NewBufferString(data), "gov")
+		require.Contains(t, err.Error(), "parse error: syntax error")
+		require.Nil(t, result)
 	})
 }
