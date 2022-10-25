@@ -9,6 +9,12 @@ import (
 
 const SeparateLine byte = 10
 
+var compileRegCache map[string]*regexp.Regexp
+
+func init() {
+	compileRegCache = make(map[string]*regexp.Regexp)
+}
+
 //go:generate easyjson -all stats.go
 type User struct {
 	ID       int    `json:"Id"`
@@ -37,11 +43,25 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
-	reg, errR := regexp.Compile("\\." + domain)
+	reg, errR := getRegexpDomain(domain)
 	if errR != nil {
 		return nil, errR
 	}
 	return countDomains(u, reg)
+}
+
+func getRegexpDomain(domain string) (*regexp.Regexp, error) {
+	reg := compileRegCache[domain]
+	if reg != nil {
+		return reg, nil
+	}
+	regC, err := regexp.Compile("\\." + domain)
+	if err != nil {
+		return nil, err
+	}
+	compileRegCache[domain] = regC
+
+	return regC, nil
 }
 
 type users [100_000]User
