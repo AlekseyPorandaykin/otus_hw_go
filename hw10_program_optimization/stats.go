@@ -33,7 +33,7 @@ func (u *User) Reset() {
 type DomainStat map[string]int
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	u, err := getUsers(r)
+	u, err := getUserGorutine(r)
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
@@ -46,8 +46,36 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 
 type users [100_000]User
 
+func getUserGorutine(r io.Reader) (result users, err error) {
+	errC := make(chan error)
+	var user User
+	lineC, doneC := getLine(r, errC)
+	numU := 0
+	for {
+		select {
+		case <-doneC:
+			return
+		case err = <-errC:
+			close(doneC)
+			return
+		case line := <-lineC:
+			if len(line) < 1 {
+				continue
+			}
+			if err = user.UnmarshalJSON(line); err != nil {
+				return
+			}
+			result[numU] = user
+			user.Reset()
+			numU++
+			line = []byte("")
+		}
+	}
+}
+
 func getUsers(r io.Reader) (result users, err error) {
 	content := make([]byte, 1024)
+
 	var user User
 	numU := 0
 	line := make([]byte, 1024)
@@ -88,6 +116,49 @@ func getUsers(r io.Reader) (result users, err error) {
 	}
 
 	return
+}
+
+func getLine(r io.Reader, errC chan error) (chan []byte, chan interface{}) {
+	lineC := make(chan []byte)
+	doneC := make(chan interface{})
+	content := make([]byte, 1024)
+	line := make([]byte, 1024)
+	line = line[:0]
+	go func() {
+		for {
+			n, errR := r.Read(content)
+			if errR != nil && errR != io.EOF {
+				errC <- errR
+				close(doneC)
+				return
+			}
+			if n < 1 {
+				lineC <- line
+				lineC <- []byte("")
+				line = line[:0]
+				close(doneC)
+				return
+			}
+			for _, item := range content[0:n] {
+				if item == SeparateLine {
+					lineC <- line
+					lineC <- []byte("")
+					line = line[:0]
+					continue
+				}
+				if errR == io.EOF {
+					lineC <- line
+					lineC <- []byte("")
+					line = line[:0]
+					close(doneC)
+					return
+				}
+				line = append(line, item)
+			}
+		}
+	}()
+
+	return lineC, doneC
 }
 
 func countDomains(u users, reg *regexp.Regexp) (DomainStat, error) {
