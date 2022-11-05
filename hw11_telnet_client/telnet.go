@@ -42,10 +42,8 @@ func (t *TcpTelnetClient) Connect() error {
 }
 
 func (t *TcpTelnetClient) Close() error {
-	t.conn.Write([]byte("Bye-bye\n"))
 	if t.conn != nil {
-		errConn := t.conn.Close()
-		if errConn != nil {
+		if errConn := t.conn.Close(); errConn != nil {
 			return errConn
 		}
 	}
