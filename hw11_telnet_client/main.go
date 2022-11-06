@@ -25,13 +25,14 @@ Description params:
 
 Description flags:
 `
-var ctx, cancel = context.WithCancel(context.Background())
 
 func init() {
 	log.SetOutput(os.Stderr)
 }
 
 func main() {
+	var ctx, stop = signal.NotifyContext(context.Background(), syscall.SIGINT)
+	defer stop()
 	timeout, host, port := parseFlagParams()
 	client := NewTelnetClient(net.JoinHostPort(host, port), timeout, os.Stdin, os.Stdout)
 	if err := client.Connect(); err != nil {
@@ -42,10 +43,31 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	SendToServer(ctx, client)
-	ReceiveFromServer(ctx, client)
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if err := client.Send(); err != nil {
+				log.Println(err)
+				stop()
+				return
+			}
+		}
+	}()
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if err := client.Receive(); err != nil {
+				log.Println(err)
+				stop()
+				return
+			}
+		}
+	}()
 
-	go handlerSignal()
 	<-ctx.Done()
 }
 
@@ -61,18 +83,4 @@ func parseFlagParams() (timeout time.Duration, host string, port string) {
 	port = pflag.Arg(1)
 
 	return
-}
-
-func handlerSignal() {
-	signalCh := make(chan os.Signal)
-	signal.Notify(signalCh, syscall.SIGINT)
-	for {
-		select {
-		case <-signalCh:
-			cancel()
-			return
-		case <-ctx.Done():
-			return
-		}
-	}
 }

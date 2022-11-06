@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"io"
 	"log"
@@ -60,40 +59,6 @@ func (t *TCPTelnetClient) Send() error {
 
 func (t *TCPTelnetClient) Receive() error {
 	return resendMessages(t.conn, t.out)
-}
-
-func ReceiveFromServer(ctx context.Context, client TelnetClient) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				if err := client.Receive(); err != nil {
-					log.Println(err)
-					cancel()
-					return
-				}
-			}
-		}
-	}()
-}
-
-func SendToServer(ctx context.Context, client TelnetClient) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				if err := client.Send(); err != nil {
-					log.Println(err)
-					cancel()
-					return
-				}
-			}
-		}
-	}()
 }
 
 func resendMessages(r io.Reader, w io.Writer) error {
