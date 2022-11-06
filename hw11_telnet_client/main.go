@@ -41,8 +41,8 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	SendToServer(client, ctx)
-	ReceiveFromServer(client, ctx)
+	SendToServer(ctx, client)
+	ReceiveFromServer(ctx, client)
 
 	go handlerSignal()
 	<-ctx.Done()
@@ -51,7 +51,7 @@ func main() {
 func parseFlagParams() (timeout time.Duration, host string, port string) {
 	pflag.DurationVar(&timeout, "timeout", time.Second*10, "timeout")
 	pflag.Usage = func() {
-		fmt.Fprintf(os.Stderr, description)
+		fmt.Fprint(os.Stderr, description)
 		pflag.PrintDefaults()
 	}
 	pflag.Parse()

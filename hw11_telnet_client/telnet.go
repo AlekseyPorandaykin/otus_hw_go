@@ -62,7 +62,7 @@ func (t *TcpTelnetClient) Receive() error {
 	return resendMessages(t.conn, t.out)
 }
 
-func ReceiveFromServer(client TelnetClient, ctx context.Context) {
+func ReceiveFromServer(ctx context.Context, client TelnetClient) {
 	go func() {
 		for {
 			select {
@@ -80,7 +80,7 @@ func ReceiveFromServer(client TelnetClient, ctx context.Context) {
 	}()
 }
 
-func SendToServer(client TelnetClient, ctx context.Context) {
+func SendToServer(ctx context.Context, client TelnetClient) {
 	go func() {
 		for {
 			select {
@@ -100,11 +100,11 @@ func SendToServer(client TelnetClient, ctx context.Context) {
 func resendMessages(r io.Reader, w io.Writer) error {
 	message, errR := bufio.NewReader(r).ReadString('\n')
 	if errR == io.EOF {
-		log.Panicln("...EOF")
+		log.Println("...EOF")
 		return ErrEOF
 	}
 	if errR != nil {
-		if errors.As(errR, &net.ErrClosed) {
+		if errors.Is(errR, net.ErrClosed) {
 			return ErrReadConnectClosed
 		}
 		return errR
