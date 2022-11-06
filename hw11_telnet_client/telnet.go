@@ -22,7 +22,7 @@ type TelnetClient interface {
 	Receive() error
 }
 
-type TcpTelnetClient struct {
+type TCPTelnetClient struct {
 	address string
 	conn    net.Conn
 	timeout time.Duration
@@ -30,7 +30,7 @@ type TcpTelnetClient struct {
 	out     io.Writer
 }
 
-func (t *TcpTelnetClient) Connect() error {
+func (t *TCPTelnetClient) Connect() error {
 	conn, errC := net.DialTimeout("tcp", t.address, t.timeout)
 	if errC != nil {
 		return errC
@@ -41,7 +41,7 @@ func (t *TcpTelnetClient) Connect() error {
 	return nil
 }
 
-func (t *TcpTelnetClient) Close() error {
+func (t *TCPTelnetClient) Close() error {
 	if t.conn != nil {
 		if errConn := t.conn.Close(); errConn != nil {
 			return errConn
@@ -54,11 +54,11 @@ func (t *TcpTelnetClient) Close() error {
 	return nil
 }
 
-func (t *TcpTelnetClient) Send() error {
+func (t *TCPTelnetClient) Send() error {
 	return resendMessages(t.in, t.conn)
 }
 
-func (t *TcpTelnetClient) Receive() error {
+func (t *TCPTelnetClient) Receive() error {
 	return resendMessages(t.conn, t.out)
 }
 
@@ -76,7 +76,6 @@ func ReceiveFromServer(ctx context.Context, client TelnetClient) {
 				}
 			}
 		}
-
 	}()
 }
 
@@ -102,7 +101,7 @@ func resendMessages(r io.Reader, w io.Writer) error {
 	for s.Scan() {
 		errR := s.Err()
 		message := s.Text()
-		if errR == io.EOF {
+		if errors.Is(errR, io.EOF) {
 			log.Println("...EOF")
 			return ErrEOF
 		}
@@ -121,7 +120,7 @@ func resendMessages(r io.Reader, w io.Writer) error {
 }
 
 func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
-	return &TcpTelnetClient{
+	return &TCPTelnetClient{
 		address: address,
 		timeout: timeout,
 		in:      in,
