@@ -98,20 +98,24 @@ func SendToServer(ctx context.Context, client TelnetClient) {
 }
 
 func resendMessages(r io.Reader, w io.Writer) error {
-	message, errR := bufio.NewReader(r).ReadString('\n')
-	if errR == io.EOF {
-		log.Println("...EOF")
-		return ErrEOF
-	}
-	if errR != nil {
-		if errors.Is(errR, net.ErrClosed) {
-			return ErrReadConnectClosed
+	s := bufio.NewScanner(r)
+	for s.Scan() {
+		errR := s.Err()
+		message := s.Text()
+		if errR == io.EOF {
+			log.Println("...EOF")
+			return ErrEOF
 		}
-		return errR
-	}
-	_, errW := w.Write([]byte(message))
-	if errW != nil {
-		return errW
+		if errR != nil {
+			if errors.Is(errR, net.ErrClosed) {
+				return ErrReadConnectClosed
+			}
+			return errR
+		}
+		_, errW := w.Write([]byte(message + "\n"))
+		if errW != nil {
+			return errW
+		}
 	}
 	return nil
 }
