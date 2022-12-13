@@ -1,1 +1,18 @@
 version: "3"
+
+services:
+  pgs:
+    image: postgres
+    restart: always
+    ports:
+      - "3307:3306"
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: calendar
+      POSTGRES_USER: calendar
+      POSTGRES_PASSWORD: developer
+    networks:
+      - calendar
+networks:
+  calendar:
+    driver: bridge

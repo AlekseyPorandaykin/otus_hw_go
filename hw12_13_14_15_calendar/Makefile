@@ -4,6 +4,11 @@ DOCKER_IMG="calendar:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
+HOME_PATH := $(shell pwd)
+
+DOCKER_DIR="./deployments/docker-compose.yaml"
+MIGRATE_SQL := $(shell cat < ./migrations/specification.sql;)
+
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
@@ -31,4 +36,19 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
+up:
+	docker-compose --file=$(HOME_PATH)/deployments/docker-compose.yaml up -d
+down:
+	docker-compose --file=$(DOCKER_DIR) down
+recreate:
+	docker-compose --file=$(DOCKER_DIR) rm -f
+	docker-compose --file=$(DOCKER_DIR) pull
+	docker-compose --file=$(DOCKER_DIR) up --build -d
+ps:
+	docker-compose --file=$(DOCKER_DIR) ps
+ps-db:
+	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "SELECT * FROM events;"
+	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "SELECT * FROM users;"
+migrate:
+	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
 .PHONY: build run build-img run-img version test lint

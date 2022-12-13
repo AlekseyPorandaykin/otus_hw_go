@@ -1,5 +1,26 @@
 [logger]
-level = "INFO"
+level = "debug"
+output_paths = ["stdout"]
+error_output_paths = ["stderr"]
 
-# TODO
-# ...
+[database]
+driver = "postgres"
+host = "localhost"
+port = "5433"
+storage = "sql"
+user = "calendar"
+db_name = "calendar"
+password = "developer"
+ssl_mode = "disable"
+
+[http]
+host = "localhost"
+port = "8080"
+read_timeout = "200ms"
+write_timeout = "200ms"
+read_header_timeout = "200ms"
+
+[http_logger]
+level = "debug"
+output_paths = ["./logs/server.log", "stdout"]
+error_output_paths = ["stderr"]
