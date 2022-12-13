@@ -38,17 +38,23 @@ lint: install-lint-deps
 
 up:
 	docker-compose --file=$(HOME_PATH)/deployments/docker-compose.yaml up -d
+
 down:
 	docker-compose --file=$(DOCKER_DIR) down
+
 recreate:
 	docker-compose --file=$(DOCKER_DIR) rm -f
 	docker-compose --file=$(DOCKER_DIR) pull
 	docker-compose --file=$(DOCKER_DIR) up --build -d
+
 ps:
 	docker-compose --file=$(DOCKER_DIR) ps
+
 ps-db:
 	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "SELECT * FROM events;"
 	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "SELECT * FROM users;"
+
 migrate:
 	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
+
 .PHONY: build run build-img run-img version test lint
