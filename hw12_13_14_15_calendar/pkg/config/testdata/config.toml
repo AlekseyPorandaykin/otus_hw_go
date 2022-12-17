@@ -1,0 +1,10 @@
+name = "test conf"
+
+[logger]
+level = "debug"
+output_paths = ["stdout"]
+error_output_paths = ["stderr"]
+
+[server]
+host = "localhost"
+port = "80"
