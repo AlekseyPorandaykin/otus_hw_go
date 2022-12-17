@@ -28,7 +28,8 @@ func New(conn *config.StorageConfig) *SQLStorage {
 	}
 }
 
-func (s *SQLStorage) Connect(ctx context.Context) (err error) {
+func (s *SQLStorage) Connect(ctx context.Context) error {
+	var err error
 	s.db, err = sqlx.ConnectContext(
 		ctx,
 		"pgx",
@@ -45,7 +46,7 @@ func (s *SQLStorage) Connect(ctx context.Context) (err error) {
 		err = s.db.Ping()
 	}
 
-	return
+	return err
 }
 
 const createQuery = `
@@ -54,16 +55,15 @@ const createQuery = `
 	RETURNING id
 	`
 
-func (s *SQLStorage) CreateEvent(ctx context.Context, e *calendar.Event) (err error) {
+func (s *SQLStorage) CreateEvent(ctx context.Context, e *calendar.Event) error {
 	var id string
 	smtp, err := s.db.PrepareNamed(createQuery)
 	if err != nil {
-		return
+		return err
 	}
 	defer smtp.Close()
-	err = smtp.GetContext(ctx, &id, e)
 
-	return
+	return smtp.GetContext(ctx, &id, e)
 }
 
 const updateQuery = `

@@ -7,7 +7,7 @@ alter table users
 
 CREATE TABLE IF NOT EXISTS events  (
     id VARCHAR ( 50 ) PRIMARY KEY,
-    title VARCHAR ( 50 )  NOT NULL,
+    title TEXT  NOT NULL,
     datetime_from TIMESTAMP NOT NULL,
     datetime_to TIMESTAMP NOT NULL,
     created_by INTEGER NOT NULL,

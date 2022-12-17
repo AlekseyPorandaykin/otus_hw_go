@@ -37,7 +37,7 @@ func (a *App) CreateEvent(ctx context.Context, event internalhttp.EventDto) erro
 		return ErrCreateExistEvent
 	}
 
-	return a.storage.CreateEvent(ctx, assemble(event))
+	return a.storage.CreateEvent(ctx, toCalendarEvent(event))
 }
 
 func (a *App) UpdateEvent(ctx context.Context, event internalhttp.EventDto) error {
@@ -49,7 +49,7 @@ func (a *App) UpdateEvent(ctx context.Context, event internalhttp.EventDto) erro
 		return ErrDateBusy
 	}
 
-	return a.storage.UpdateEvent(ctx, assemble(event))
+	return a.storage.UpdateEvent(ctx, toCalendarEvent(event))
 }
 
 func (a *App) ReadEvent(ctx context.Context, id string) (*calendar.Event, error) {
@@ -68,7 +68,7 @@ func (a *App) DeleteEvent(ctx context.Context, id string) error {
 	return a.storage.DeleteEvent(ctx, id)
 }
 
-func assemble(eventDto internalhttp.EventDto) *calendar.Event {
+func toCalendarEvent(eventDto internalhttp.EventDto) *calendar.Event {
 	return &calendar.Event{
 		Title:         eventDto.Title,
 		DateTimeStart: eventDto.DateTimeStart,
