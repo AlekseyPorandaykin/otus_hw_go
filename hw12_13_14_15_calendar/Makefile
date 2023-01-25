@@ -5,6 +5,7 @@ GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
 HOME_PATH := $(shell pwd)
+PATH := $(PATH)
 
 DOCKER_DIR="./deployments/docker-compose.yaml"
 MIGRATE_SQL := $(shell cat < ./migrations/specification.sql;)
@@ -56,5 +57,8 @@ ps-db:
 
 migrate:
 	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
+
+generate:
+	docker-compose --file=$(DOCKER_DIR) exec ubuntu go generate
 
 .PHONY: build run build-img run-img version test lint

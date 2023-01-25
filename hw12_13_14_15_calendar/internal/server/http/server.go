@@ -19,22 +19,6 @@ type Server struct {
 
 var closeTimeout = time.Second * 3
 
-type EventDto struct {
-	Title         string
-	DateTimeStart time.Time
-	DateTimeEnd   time.Time
-	Description   string
-	CreatedBy     int
-	RemindFrom    time.Time
-}
-
-type Application interface {
-	CreateEvent(ctx context.Context, event EventDto) error
-	ReadEvent(ctx context.Context, id string) (*calendar.Event, error)
-	UpdateEvent(ctx context.Context, event EventDto) error
-	DeleteEvent(ctx context.Context, id string) error
-}
-
 type Config struct {
 	Host              string        `mapstructure:"host"`
 	Port              string        `mapstructure:"port"`
@@ -43,11 +27,14 @@ type Config struct {
 	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
 }
 
-func NewServer(logger logger.Logger, app Application, conf *Config) *Server {
+func NewServer(logger logger.Logger, app calendar.Application, conf *Config) *Server {
+	handler := NewHandler(app, logger)
+	middleware := &Middleware{logger: logger}
+	handler.AddMiddleware(middleware.loggingMiddleware)
 	return &Server{
 		server: &http.Server{
 			Addr:              net.JoinHostPort(conf.Host, conf.Port),
-			Handler:           NewHandler(app, logger),
+			Handler:           handler,
 			ReadTimeout:       conf.ReadTimeout,
 			WriteTimeout:      conf.WriteTimeout,
 			ReadHeaderTimeout: conf.ReadHeaderTimeout,
@@ -68,7 +55,7 @@ func (s *Server) Start() error {
 func (s *Server) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), closeTimeout)
 	defer func() {
-		s.logger.Debug("Shutdown http server")
+		s.logger.Info("Shutdown http server")
 		cancel()
 	}()
 

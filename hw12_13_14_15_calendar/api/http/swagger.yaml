@@ -1,0 +1,324 @@
+openapi: 3.0.3
+info:
+  title: Calendar HTTP Api
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  "/":
+    get:
+      summary: Hello world page
+      responses:
+        "200":
+          description: Struct response with message hello-world
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+  "/events":
+    post:
+      summary: Create event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        "201":
+          description: Event created success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "422":
+          description: Error validate request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "400":
+          description: Bad request, server don't understand request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+  "/events/{uuid}":
+    get:
+      summary: Get info about event
+      parameters:
+        - $ref: "#/components/parameters/UUID_path"
+      responses:
+        "200":
+          description: Event data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response_Event"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+    delete:
+      summary: Delete event by uuid
+      parameters:
+        - $ref: "#/components/parameters/UUID_path"
+      responses:
+        "200":
+          description: Event deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response_Event"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+    put:
+      summary: Update event by uuid
+      parameters:
+        - $ref: "#/components/parameters/UUID_path"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        "200":
+          description: Event data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response_Event"
+        "400":
+          description: Bad request, server don't understand request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "422":
+          description: Error validate request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+  "/events/day/{date}":
+    get:
+      summary: List event on day
+      parameters:
+        - $ref: "#/components/parameters/Date_path"
+      responses:
+        200:
+          description: List events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response_Events"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Events not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+  "/events/week/{date}":
+    get:
+      summary: List event on week
+      parameters:
+        - $ref: "#/components/parameters/Date_path"
+      responses:
+        200:
+          description: List events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response_Events"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Events not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+  "/events/month/{date}":
+    get:
+      summary: List event on month
+      parameters:
+        - $ref: "#/components/parameters/Date_path"
+      responses:
+        200:
+          description: List events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response_Events"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Events not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+
+components:
+  schemas:
+    Response:
+      type: object
+      properties:
+        code:
+          description: Code response
+          example: Success execute
+        message:
+          description: Text message
+          example: Message about event | Error message
+        data:
+          description: Response data
+          example: null
+    Event:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title event
+          example: "Test title"
+        description:
+          type: string
+          description: Description event
+          example: "Test description"
+        dateTimeStart:
+          type: string
+          description: Datetime start event
+          pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}'
+          example: "2022-02-11 12:24:05"
+        dateTimeEnd:
+          type: string
+          description: Datetime end event
+          pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}'
+          example: "2022-02-11 12:24:05"
+        createdBy:
+          type: integer
+          description: ID user, author event
+          example: 1
+        remindFrom:
+          type: string
+          description: Datetime start remind event
+          pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}'
+          example: "2022-02-11 12:24:05"
+    Response_Event:
+      type: object
+      properties:
+        code:
+          description: Code response
+          example: Success execute
+        message:
+          description: Text message
+          example: Message about event | Error message
+        data:
+          $ref: "#/components/schemas/Event_response"
+    Response_Events:
+      type: object
+      properties:
+        code:
+          description: Code response
+          example: Success execute
+        message:
+          description: Text message
+          example: Message about event | Error message
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event_response"
+    Event_response:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "UUID event"
+          format: uuid
+          pattern: "[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}"
+        title:
+          type: string
+          description: Title event
+          example: "Test title"
+        description:
+          type: string
+          description: Description event
+          example: "Test description"
+        dateTimeStart:
+          type: string
+          description: Datetime start event
+          pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}'
+          example: "2022-02-11 12:24:05"
+        dateTimeEnd:
+          type: string
+          description: Datetime end event
+          pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}'
+          example: "2022-02-11 12:24:05"
+        createdBy:
+          type: integer
+          description: ID user, author event
+          example: 1
+        remindFrom:
+          type: string
+          description: Datetime start remind event
+          pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}'
+          example: "2022-02-11 12:24:05"
+    UUID:
+      type: string
+      format: uuid
+      pattern: "[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}"
+  parameters:
+    UUID_path:
+      in: path
+      name: uuid
+      schema:
+        $ref: "#/components/schemas/UUID"
+      required: true
+      description: UUID event
+    Date_path:
+      in: path
+      name: date
+      schema:
+        type: string
+        pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+        example: "2022-02-11 12:24:05"
+      required: true
+      description: Date

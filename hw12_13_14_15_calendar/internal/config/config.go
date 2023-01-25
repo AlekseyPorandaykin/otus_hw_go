@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/pkg/config"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/pkg/logger"
@@ -9,8 +10,10 @@ import (
 type Config struct {
 	Logger     *logger.Config       `mapstructure:"logger"`
 	HTTPLogger *logger.Config       `mapstructure:"http_logger"`
+	GrpcLogger *logger.Config       `mapstructure:"grpc_logger"`
 	Database   *StorageConfig       `mapstructure:"database"`
 	HTTPServer *internalhttp.Config `mapstructure:"http"`
+	GrpcServer *grpc.Config         `mapstructure:"grpc"`
 }
 type StorageConfig struct {
 	Host     string `mapstructure:"host"`

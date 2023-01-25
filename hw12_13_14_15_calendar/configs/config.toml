@@ -1,6 +1,6 @@
 [logger]
 level = "debug"
-output_paths = ["stdout"]
+output_paths = ["stdout","stderr"]
 error_output_paths = ["stderr"]
 
 [database]
@@ -22,5 +22,14 @@ read_header_timeout = "200ms"
 
 [http_logger]
 level = "debug"
-output_paths = ["./logs/server.log", "stdout"]
+output_paths = ["./logs/http_server.log", "stdout"]
 error_output_paths = ["stderr"]
+
+[grpc_logger]
+level = "debug"
+output_paths = ["./logs/grpc_server.log", "stdout"]
+error_output_paths = ["stderr"]
+
+[grpc]
+host="0.0.0.0"
+port="50052"
