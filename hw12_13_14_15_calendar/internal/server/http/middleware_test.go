@@ -68,18 +68,19 @@ func TestMiddleware_loggingMiddleware(t *testing.T) {
 			m := &Middleware{
 				logger: tt.fields.logger,
 			}
-			resp := NewMockResponse()
 			headers := make(http.Header)
 			headers["User-Agent"] = []string{"test"}
-			req := &http.Request{
-				Method:     "POST",
-				RemoteAddr: "0.0.0.0:80",
-				RequestURI: "/list",
-				Header:     headers,
-				Proto:      "HTTP/1.1",
-			}
 
-			m.loggingMiddleware(tt.args.next)(resp, req)
+			m.loggingMiddleware(tt.args.next)(
+				NewMockResponse(),
+				&http.Request{
+					Method:     "POST",
+					RemoteAddr: "0.0.0.0:80",
+					RequestURI: "/list",
+					Header:     headers,
+					Proto:      "HTTP/1.1",
+				},
+			)
 			require.True(t, tt.fields.logger.HasMessage("info", "HTTP request", "ip", "0.0.0.0"))
 			require.True(t, tt.fields.logger.HasMessage("info", "HTTP request", "method", "POST"))
 			require.True(t, tt.fields.logger.HasMessage("info", "HTTP request", "path", "/list"))
