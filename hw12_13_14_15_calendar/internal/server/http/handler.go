@@ -85,13 +85,16 @@ func (h *Handler) getEventHandler(r *http.Request) http.HandlerFunc {
 			return h.actionNotSupported
 		}
 	}
-	if h.urlEventsOnDay.Match([]byte(r.URL.String())) && r.Method == http.MethodGet {
+	if r.Method != http.MethodGet {
+		return nil
+	}
+	if h.urlEventsOnDay.Match([]byte(r.URL.String())) {
 		return h.getEventsOnDay
 	}
-	if h.urlEventsOnWeek.Match([]byte(r.URL.String())) && r.Method == http.MethodGet {
+	if h.urlEventsOnWeek.Match([]byte(r.URL.String())) {
 		return h.getEventsOnWeek
 	}
-	if h.urlEventsOnMonth.Match([]byte(r.URL.String())) && r.Method == http.MethodGet {
+	if h.urlEventsOnMonth.Match([]byte(r.URL.String())) {
 		return h.getEventsOnMonth
 	}
 	return nil
@@ -114,7 +117,12 @@ func (h *Handler) createEvent(w http.ResponseWriter, r *http.Request) {
 	if req == nil {
 		return
 	}
-	eventUUID, err := h.app.CreateEvent(r.Context(), toEventDto(req))
+	eventDto, errE := toEventDto(req)
+	if errE != nil {
+		h.sendResponse(NewResponse(errorCreateEvent, errE.Error(), nil), w)
+		return
+	}
+	eventUUID, err := h.app.CreateEvent(r.Context(), eventDto)
 	if err != nil {
 		h.sendResponse(NewResponse(errorCreateEvent, err.Error(), nil), w)
 		return
@@ -156,7 +164,12 @@ func (h *Handler) updateEvent(w http.ResponseWriter, r *http.Request) {
 	if req == nil {
 		return
 	}
-	if err := h.app.UpdateEvent(r.Context(), eventUUID, toEventDto(req)); err != nil {
+	eventDto, errE := toEventDto(req)
+	if errE != nil {
+		h.sendResponse(NewResponse(eventUpdateErrorCode, errE.Error(), nil), w)
+		return
+	}
+	if err := h.app.UpdateEvent(r.Context(), eventUUID, eventDto); err != nil {
 		h.sendResponse(NewResponse(eventUpdateErrorCode, err.Error(), nil), w)
 		return
 	}
@@ -228,6 +241,7 @@ func (h *Handler) getEventsOnMonth(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) parserEventRequest(w http.ResponseWriter, r *http.Request) *EventRequest {
 	req := &EventRequest{}
 	data, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		h.sendResponse(NewResponse(errorReadRequest, err.Error(), nil), w)
 		return nil

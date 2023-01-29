@@ -64,10 +64,19 @@ func (e *EventRequest) GetRemindFrom() (time.Time, error) {
 	return time.Parse(DateTimeFormat, e.RemindFrom)
 }
 
-func toEventDto(req *EventRequest) *calendar.EventDto {
-	dateTimeStart, _ := req.GetDateTimeStart()
-	dateTimeEnd, _ := req.GetDateTimeEnd()
-	remindFrom, _ := req.GetRemindFrom()
+func toEventDto(req *EventRequest) (*calendar.EventDto, error) {
+	dateTimeStart, errS := req.GetDateTimeStart()
+	if errS != nil {
+		return nil, errS
+	}
+	dateTimeEnd, errE := req.GetDateTimeEnd()
+	if errE != nil {
+		return nil, errE
+	}
+	remindFrom, errR := req.GetRemindFrom()
+	if errR != nil {
+		return nil, errR
+	}
 	return &calendar.EventDto{
 		Title:         req.Title,
 		Description:   req.Description,
@@ -75,5 +84,5 @@ func toEventDto(req *EventRequest) *calendar.EventDto {
 		DateTimeStart: dateTimeStart,
 		DateTimeEnd:   dateTimeEnd,
 		RemindFrom:    remindFrom,
-	}
+	}, nil
 }

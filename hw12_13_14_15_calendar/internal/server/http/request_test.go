@@ -1,11 +1,13 @@
 package internalhttp
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/calendar"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -66,9 +68,7 @@ func TestEventRequest_GetDateTimeEnd(t *testing.T) {
 				t.Errorf("GetDateTimeEnd() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetDateTimeEnd() got = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got, fmt.Sprintf("GetDateTimeEnd() got = %v, want %v", got, tt.want))
 		})
 	}
 }
@@ -356,7 +356,7 @@ func Test_toEventDto(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := toEventDto(tt.args.req); !reflect.DeepEqual(got, tt.want) {
+			if got, _ := toEventDto(tt.args.req); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("toEventDto() = %v, want %v", got, tt.want)
 			}
 		})

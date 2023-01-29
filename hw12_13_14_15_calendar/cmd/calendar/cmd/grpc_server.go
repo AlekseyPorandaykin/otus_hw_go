@@ -40,7 +40,7 @@ var grpcServerCmd = &cobra.Command{
 
 		server := grpc.NewServer(serverLog, app.New(appLog, s), conf.GrpcServer)
 		if err := server.Listen(ctx); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	},
 }
