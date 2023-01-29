@@ -13,6 +13,15 @@ services:
       POSTGRES_PASSWORD: developer
     networks:
       - calendar
+  ubuntu:
+    build:
+      context: ./
+      dockerfile: ubuntu.Dockerfile
+    volumes:
+      - ./../:/app
+    networks:
+      - calendar
+    tty: true
 networks:
   calendar:
     driver: bridge

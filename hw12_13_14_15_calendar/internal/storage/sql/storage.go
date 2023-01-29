@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/calendar"
@@ -50,8 +51,8 @@ func (s *SQLStorage) Connect(ctx context.Context) error {
 }
 
 const createQuery = `
-	INSERT INTO public.events (id, title, datetime_from, datetime_to,created_by,start_notify)
-		VALUES (:id, :title, :datetime_from, :datetime_to, :created_by, :start_notify)
+	INSERT INTO public.events (id, title, description, datetime_from, datetime_to,created_by,start_notify)
+		VALUES (:id, :title, :description, :datetime_from, :datetime_to, :created_by, :start_notify)
 	RETURNING id
 	`
 
@@ -69,6 +70,7 @@ func (s *SQLStorage) CreateEvent(ctx context.Context, e *calendar.Event) error {
 const updateQuery = `
 	UPDATE public.events 
 		SET title = :title, 
+			description = :description,
 		    datetime_from = :datetime_from, 
 		    datetime_to = :datetime_to, 
 		    created_by = :created_by, 
@@ -104,7 +106,7 @@ func (s *SQLStorage) EventByID(ctx context.Context, id string) (*calendar.Event,
 	var e calendar.Event
 	err := row.StructScan(&e)
 
-	if errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && strings.Contains(err.Error(), pgx.ErrNoRows.Error()) {
 		return nil, nil
 	}
 	return &e, err

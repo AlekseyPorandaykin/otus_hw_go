@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package event;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./;event";
+
+message Event {
+  string title = 1;
+  google.protobuf.Timestamp dateTimeStart = 2;
+  google.protobuf.Timestamp dateTimeEnd = 3;
+  string description = 4;
+  int32 userId = 5;
+  google.protobuf.Timestamp remindFrom = 6;
+}
+
+message EventUUID{
+  string id = 1;
+}
+
+message Events {
+  repeated Event events = 1;
+}
+
+message EventsRequest {
+  google.protobuf.Timestamp dateFrom = 1;
+}
+
+message UpdateRequest {
+  string id = 1;
+  Event event = 2;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message Response {
+  bool status = 1;
+  string reason = 2;
+}
+
+message FilterResponse {
+  bool status = 1;
+  string reason = 2;
+  Events events = 3;
+}
+
+message EventResponse {
+  bool status = 1;
+  string reason = 2;
+  Event event = 3;
+}
+
+service EventService {
+  rpc Create(Event) returns (Response);
+  rpc Reader(EventUUID) returns (EventResponse);
+  rpc Update(UpdateRequest) returns (Response);
+  rpc Delete (DeleteRequest) returns (Response);
+  rpc GetEventsOnDay (EventsRequest) returns (FilterResponse);
+  rpc GetEventsOnWeek (EventsRequest) returns (FilterResponse);
+  rpc GetEventsOnMonth (EventsRequest) returns (FilterResponse);
+}
