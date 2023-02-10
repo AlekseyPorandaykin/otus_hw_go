@@ -10,10 +10,13 @@ require (
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.2.0
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
+	github.com/sethvargo/go-retry v0.2.4
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
+	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.50.1

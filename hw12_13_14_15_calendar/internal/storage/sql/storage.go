@@ -11,6 +11,7 @@ import (
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/config"
 	"github.com/jackc/pgx"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 var (
@@ -51,9 +52,11 @@ func (s *SQLStorage) Connect(ctx context.Context) error {
 }
 
 const createQuery = `
-	INSERT INTO public.events (id, title, description, datetime_from, datetime_to,created_by,start_notify)
-		VALUES (:id, :title, :description, :datetime_from, :datetime_to, :created_by, :start_notify)
-	RETURNING id
+INSERT INTO 
+    public.events(id,title,description,datetime_from,datetime_to,created_by,start_notify,notify_status,created_at)
+	VALUES 
+	    (:id,:title,:description,:datetime_from,:datetime_to,:created_by,:start_notify,:notify_status,:created_at)
+RETURNING id
 	`
 
 func (s *SQLStorage) CreateEvent(ctx context.Context, e *calendar.Event) error {
@@ -96,10 +99,9 @@ func (s *SQLStorage) DeleteEvent(ctx context.Context, id string) error {
 	return err
 }
 
-const getEventByID = `SELECT * FROM public.events WHERE id=$1`
-
 func (s *SQLStorage) EventByID(ctx context.Context, id string) (*calendar.Event, error) {
-	row := s.db.QueryRowxContext(ctx, getEventByID, id)
+	query := `SELECT * FROM public.events WHERE id=$1`
+	row := s.db.QueryRowxContext(ctx, query, id)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -112,11 +114,12 @@ func (s *SQLStorage) EventByID(ctx context.Context, id string) (*calendar.Event,
 	return &e, err
 }
 
-const getEventsByPeriod = `SELECT * FROM public.events WHERE datetime_from>=$1 AND datetime_to <= $2 LIMIT $3`
-
 func (s *SQLStorage) EventsByPeriod(ctx context.Context, start, end time.Time, limit int) ([]*calendar.Event, error) {
-	var events []*calendar.Event
-	rows, err := s.db.QueryxContext(ctx, getEventsByPeriod, start, end, limit)
+	var (
+		events []*calendar.Event
+		query  = `SELECT * FROM public.events WHERE datetime_from>=$1 AND datetime_to <= $2 LIMIT $3`
+	)
+	rows, err := s.db.QueryxContext(ctx, query, start, end, limit)
 	if err != nil {
 		return events, err
 	}
@@ -130,6 +133,58 @@ func (s *SQLStorage) EventsByPeriod(ctx context.Context, start, end time.Time, l
 	}
 
 	return events, nil
+}
+
+func (s *SQLStorage) GetEventsWithRemindStatus(
+	ctx context.Context, time time.Time, status calendar.RemindStatus,
+) ([]*calendar.Event, error) {
+	var (
+		events []*calendar.Event
+		query  = `SELECT * FROM public.events WHERE start_notify<=$1 AND notify_status = $2`
+	)
+	rows, err := s.db.QueryxContext(ctx, query, time, status)
+	if err != nil {
+		return events, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		e := calendar.Event{}
+		if err := rows.StructScan(&e); err != nil {
+			return events, err
+		}
+		events = append(events, &e)
+	}
+
+	return events, nil
+}
+
+func (s *SQLStorage) UpdateRemindStatus(ctx context.Context, id string, status calendar.RemindStatus) error {
+	query := `UPDATE public.events SET notify_status=$1 WHERE id=$2`
+	res, err := s.db.ExecContext(ctx, query, status, id)
+	if err != nil {
+		return err
+	}
+	rowA, err := res.RowsAffected()
+	if rowA == 0 {
+		return ErrNotUpdate
+	}
+	return err
+}
+
+func (s *SQLStorage) GetOldEventIDs(ctx context.Context, oldTime time.Time) ([]string, error) {
+	var (
+		query = `SELECT id FROM public.events WHERE datetime_to <= $1`
+		ids   = make([]string, 0)
+	)
+	err := s.db.SelectContext(ctx, &ids, query, oldTime)
+
+	return ids, err
+}
+
+func (s *SQLStorage) DeleteEventByIDs(ctx context.Context, ids []string) error {
+	query := `DELETE FROM public.events WHERE id = ANY($1)`
+	_, err := s.db.ExecContext(ctx, query, pq.Array(ids))
+	return err
 }
 
 func (s *SQLStorage) Close(ctx context.Context) error {

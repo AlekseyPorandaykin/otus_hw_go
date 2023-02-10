@@ -9,8 +9,8 @@ RUN apt-get update -y \
     && apt install -y protobuf-compiler
 
 #Install go1.16
-RUN curl https://dl.google.com/go/go1.20.linux-arm64.tar.gz --output /tmp/go1.20.linux-arm64.tar.gz \
-    && rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go1.20.linux-arm64.tar.gz
+RUN curl https://dl.google.com/go/go1.16.linux-arm64.tar.gz --output /tmp/go1.16.linux-arm64.tar.gz \
+    && rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go1.16.linux-arm64.tar.gz
 
 RUN export GOROOT=/usr/local/go
 RUN export GOPATH=$HOME/go
@@ -19,10 +19,7 @@ RUN export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 ENV PATH=$PATH:/usr/local/go/bin:/root/go/bin
 
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28 \
-    && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2 \
-    && go install github.com/daixiang0/gci@latest \
-    && go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.1 \
-    && go install mvdan.cc/gofumpt@latest
+    && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
 RUN  go env
 

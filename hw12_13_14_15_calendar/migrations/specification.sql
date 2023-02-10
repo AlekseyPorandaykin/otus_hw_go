@@ -11,8 +11,10 @@ CREATE TABLE IF NOT EXISTS events  (
     description TEXT NOT NULL,
     datetime_from TIMESTAMP NOT NULL,
     datetime_to TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
     created_by INTEGER NOT NULL,
     start_notify TIMESTAMP NULL,
+    notify_status smallint NOT NULL,
     CONSTRAINT fk_user
         FOREIGN KEY(created_by)
             REFERENCES users(id)

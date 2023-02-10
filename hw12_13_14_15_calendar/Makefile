@@ -16,6 +16,15 @@ build:
 run: build
 	$(BIN) -config ./configs/config.toml
 
+run-scheduler: build
+	$(BIN) scheduler --config=./configs/scheduler.toml
+
+run-sender: build
+	$(BIN) sender --config=./configs/sender.toml
+
+run-grpc: build
+	$(BIN) grpc_server --config=./configs/config.toml
+
 build-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
@@ -59,6 +68,8 @@ migrate:
 	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
 
 generate:
-	docker-compose --file=$(DOCKER_DIR) exec ubuntu go generate
-
+	docker-compose --file=$(DOCKER_DIR) exec go16 go generate
+go-fix:
+	docker-compose --file=$(DOCKER_DIR) exec ubuntu gci write /app
+	docker-compose --file=$(DOCKER_DIR) exec ubuntu gofumpt -l -w /app
 .PHONY: build run build-img run-img version test lint

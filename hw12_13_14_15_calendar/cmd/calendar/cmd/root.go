@@ -56,7 +56,9 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.Flags().StringVar(&configFile, "config", "./configs/config.toml", "Path to configuration file")
+	RootCmd.PersistentFlags().StringVar(&configFile, "config", "./configs/config.toml", "Path to configuration file")
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.AddCommand(grpcServerCmd)
+	RootCmd.AddCommand(schedulerCmd)
+	RootCmd.AddCommand(senderCmd)
 }
