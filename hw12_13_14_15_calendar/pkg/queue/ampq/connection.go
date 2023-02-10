@@ -8,7 +8,7 @@ import (
 
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/pkg/logger"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/pkg/queue"
-	"github.com/sethvargo/go-retry"
+	retry "github.com/sethvargo/go-retry"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )
