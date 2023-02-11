@@ -46,8 +46,10 @@ func (e *EventRequest) Validate() error {
 	if _, err := e.GetDateTimeEnd(); err != nil {
 		return errors.New("incorrect dateTimeEnd")
 	}
-	if _, err := e.GetRemindFrom(); err != nil {
-		return errors.New("incorrect remindFrom")
+	if e.RemindFrom != "" {
+		if _, err := e.GetRemindFrom(); err != nil {
+			return errors.New("incorrect remindFrom")
+		}
 	}
 	return nil
 }
@@ -65,18 +67,22 @@ func (e *EventRequest) GetRemindFrom() (time.Time, error) {
 }
 
 func toEventDto(req *EventRequest) (*calendar.EventDto, error) {
-	dateTimeStart, errS := req.GetDateTimeStart()
-	if errS != nil {
-		return nil, errS
+	dateTimeStart, err := req.GetDateTimeStart()
+	if err != nil {
+		return nil, err
 	}
-	dateTimeEnd, errE := req.GetDateTimeEnd()
-	if errE != nil {
-		return nil, errE
+	dateTimeEnd, err := req.GetDateTimeEnd()
+	if err != nil {
+		return nil, err
 	}
-	remindFrom, errR := req.GetRemindFrom()
-	if errR != nil {
-		return nil, errR
+	remindFrom := dateTimeStart
+	if req.RemindFrom != "" {
+		remindFrom, err = req.GetRemindFrom()
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return &calendar.EventDto{
 		Title:         req.Title,
 		Description:   req.Description,

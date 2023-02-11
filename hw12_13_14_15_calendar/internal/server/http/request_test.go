@@ -296,7 +296,7 @@ func TestEventRequest_Validate(t *testing.T) {
 				DateTimeEnd:   "2022-02-19 11:24:05",
 				Description:   "Test description",
 				CreatedBy:     1,
-				RemindFrom:    "",
+				RemindFrom:    "gfdg",
 			},
 			wantErr: true,
 			errMsg:  "incorrect remindFrom",

@@ -24,22 +24,26 @@ var RootCmd = &cobra.Command{
 
 		conf, err := config.New(configFile)
 		if err != nil {
-			log.Panic("Error create config: " + err.Error())
+			log.Println("Error create config: " + err.Error())
+			return
 		}
 
 		appLog, err := logger.New(conf.Logger)
 		if err != nil {
-			log.Panic("Error create app logger: " + err.Error())
+			log.Println("Error create app logger: " + err.Error())
+			return
 		}
 
 		serverLog, err := logger.New(conf.HTTPLogger)
 		if err != nil {
-			log.Panic("Error create server logger: " + err.Error())
+			log.Println("Error create server logger: " + err.Error())
+			return
 		}
 
 		s, err := storage.CreateStorage(conf.Database)
 		if err != nil {
-			log.Panic("Error create storage: " + err.Error())
+			log.Println("Error create storage: " + err.Error())
+			return
 		}
 
 		server := internalhttp.NewServer(serverLog, app.New(appLog, s), conf.HTTPServer)
@@ -56,7 +60,9 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.Flags().StringVar(&configFile, "config", "./configs/config.toml", "Path to configuration file")
+	RootCmd.PersistentFlags().StringVar(&configFile, "config", "./configs/config.toml", "Path to configuration file")
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.AddCommand(grpcServerCmd)
+	RootCmd.AddCommand(schedulerCmd)
+	RootCmd.AddCommand(senderCmd)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/calendar"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/config"
+	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/scheduler"
 	memorystorage "github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/storage/sql"
 )
@@ -14,6 +15,11 @@ import (
 var ErrNotSupportedDriver = errors.New("not supported driver storage")
 
 type Storage interface {
+	EventStorage
+	scheduler.EventRepository
+}
+
+type EventStorage interface {
 	CreateEvent(ctx context.Context, e *calendar.Event) error
 	UpdateEvent(ctx context.Context, e *calendar.Event) error
 	DeleteEvent(ctx context.Context, id string) error

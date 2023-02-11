@@ -7,7 +7,7 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 HOME_PATH := $(shell pwd)
 PATH := $(PATH)
 
-DOCKER_DIR="./deployments/docker-compose.yaml"
+DOCKER_COMPOSE_FILE="./deployments/docker-compose.yaml"
 MIGRATE_SQL := $(shell cat < ./migrations/specification.sql;)
 
 build:
@@ -15,6 +15,15 @@ build:
 
 run: build
 	$(BIN) -config ./configs/config.toml
+
+run-scheduler: build
+	$(BIN) scheduler --config=./configs/scheduler.toml
+
+run-sender: build
+	$(BIN) sender --config=./configs/sender.toml
+
+run-grpc: build
+	$(BIN) grpc_server --config=./configs/config.toml
 
 build-img:
 	docker build \
@@ -41,24 +50,26 @@ up:
 	docker-compose --file=$(HOME_PATH)/deployments/docker-compose.yaml up -d
 
 down:
-	docker-compose --file=$(DOCKER_DIR) down
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) down
 
 recreate:
-	docker-compose --file=$(DOCKER_DIR) rm -f
-	docker-compose --file=$(DOCKER_DIR) pull
-	docker-compose --file=$(DOCKER_DIR) up --build -d
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) rm -f
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) pull
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) up --build -d
 
 ps:
-	docker-compose --file=$(DOCKER_DIR) ps
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) ps
 
 ps-db:
-	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "SELECT * FROM events;"
-	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "SELECT * FROM users;"
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) exec pgs psql -U calendar -d calendar -c "SELECT * FROM events;"
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) exec pgs psql -U calendar -d calendar -c "SELECT * FROM users;"
 
 migrate:
-	docker-compose --file=$(DOCKER_DIR) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
 
 generate:
-	docker-compose --file=$(DOCKER_DIR) exec ubuntu go generate
-
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) exec otus-env go generate
+go-fix:
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) exec ubuntu gci write /app
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) exec ubuntu gofumpt -l -w /app
 .PHONY: build run build-img run-img version test lint

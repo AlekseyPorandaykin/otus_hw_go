@@ -58,7 +58,8 @@ func TestMiddleware_loggingMiddleware(t *testing.T) {
 			args: args{
 				next: func(writer http.ResponseWriter, request *http.Request) {
 					writer.WriteHeader(200)
-					writer.Write([]byte("test"))
+					_, err := writer.Write([]byte("test"))
+					require.NoError(t, err)
 				},
 			},
 		},

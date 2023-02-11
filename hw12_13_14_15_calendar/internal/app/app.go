@@ -41,14 +41,14 @@ func (a *App) CreateEvent(ctx context.Context, event *calendar.EventDto) (string
 	if len(events) > 0 {
 		return "", ErrCreateExistEvent
 	}
-	e := toCalendarEvent(event)
+	e := calendar.ToCalendarEvent(event)
 	e.ID = uuid.New().String()
 
 	return e.ID, a.storage.CreateEvent(ctx, e)
 }
 
-func (a *App) UpdateEvent(ctx context.Context, uuid string, event *calendar.EventDto) error {
-	eventsInPeriod, err := a.storage.EventsByPeriod(ctx, event.DateTimeStart, event.DateTimeEnd, 1)
+func (a *App) UpdateEvent(ctx context.Context, uuid string, eventDto *calendar.EventDto) error {
+	eventsInPeriod, err := a.storage.EventsByPeriod(ctx, eventDto.DateTimeStart, eventDto.DateTimeEnd, 1)
 	if err != nil {
 		a.logger.Error("Error found event", zap.Error(err))
 		return err
@@ -62,9 +62,9 @@ func (a *App) UpdateEvent(ctx context.Context, uuid string, event *calendar.Even
 	if len(events) > 0 {
 		return ErrDateBusy
 	}
-	eventDto := toCalendarEvent(event)
-	eventDto.ID = uuid
-	return a.storage.UpdateEvent(ctx, eventDto)
+	event := calendar.ToCalendarEvent(eventDto)
+	event.ID = uuid
+	return a.storage.UpdateEvent(ctx, event)
 }
 
 func (a *App) ReadEvent(ctx context.Context, id string) (*calendar.EventDto, error) {
@@ -75,7 +75,7 @@ func (a *App) ReadEvent(ctx context.Context, id string) (*calendar.EventDto, err
 	if event == nil {
 		return nil, nil
 	}
-	return toCalendarEventDto(event), nil
+	return calendar.ToCalendarEventDto(event), nil
 }
 
 func (a *App) DeleteEvent(ctx context.Context, id string) error {
@@ -97,7 +97,7 @@ func (a *App) GetEventsOnDay(ctx context.Context, day time.Time) ([]*calendar.Ev
 		return events, err
 	}
 	for _, e := range eventsInPeriod {
-		events = append(events, toCalendarEventDto(e))
+		events = append(events, calendar.ToCalendarEventDto(e))
 	}
 	return events, nil
 }
@@ -109,7 +109,7 @@ func (a *App) GetEventsOnWeek(ctx context.Context, day time.Time) ([]*calendar.E
 		return events, err
 	}
 	for _, e := range eventsInPeriod {
-		events = append(events, toCalendarEventDto(e))
+		events = append(events, calendar.ToCalendarEventDto(e))
 	}
 	return events, nil
 }
@@ -121,30 +121,7 @@ func (a *App) GetEventsOnMonth(ctx context.Context, day time.Time) ([]*calendar.
 		return events, err
 	}
 	for _, e := range eventsInPeriod {
-		events = append(events, toCalendarEventDto(e))
+		events = append(events, calendar.ToCalendarEventDto(e))
 	}
 	return events, nil
-}
-
-func toCalendarEvent(eventDto *calendar.EventDto) *calendar.Event {
-	return &calendar.Event{
-		Title:         eventDto.Title,
-		DateTimeStart: eventDto.DateTimeStart,
-		DateTimeEnd:   eventDto.DateTimeEnd,
-		Description:   eventDto.Description,
-		CreatedBy:     calendar.UserID(eventDto.CreatedBy),
-		RemindFrom:    eventDto.RemindFrom,
-	}
-}
-
-func toCalendarEventDto(e *calendar.Event) *calendar.EventDto {
-	return &calendar.EventDto{
-		ID:            e.ID,
-		Title:         e.Title,
-		DateTimeStart: e.DateTimeStart,
-		DateTimeEnd:   e.DateTimeEnd,
-		Description:   e.Description,
-		CreatedBy:     int32(e.CreatedBy),
-		RemindFrom:    e.RemindFrom,
-	}
 }

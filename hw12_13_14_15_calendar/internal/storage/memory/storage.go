@@ -72,6 +72,46 @@ func (m *Storage) EventsByPeriod(ctx context.Context, start, end time.Time, limi
 	return res, nil
 }
 
+func (m *Storage) GetEventsWithRemindStatus(
+	ctx context.Context, time time.Time, status calendar.RemindStatus,
+) ([]*calendar.Event, error) {
+	events := make([]*calendar.Event, 0)
+	for _, e := range m.events {
+		if e.RemindStatus == calendar.NotSentStatus && (e.RemindFrom.After(time) || e.RemindFrom.Equal(time)) {
+			events = append(events, e)
+		}
+	}
+	return events, nil
+}
+
+func (m *Storage) UpdateRemindStatus(ctx context.Context, id string, status calendar.RemindStatus) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if e, ok := m.events[id]; ok && e != nil {
+		e.RemindStatus = status
+	}
+	return nil
+}
+
+func (m *Storage) GetOldEventIDs(ctx context.Context, oldTime time.Time) ([]string, error) {
+	events := make([]string, 0)
+	for _, e := range m.events {
+		if e.DateTimeEnd.Before(oldTime) {
+			events = append(events, e.ID)
+		}
+	}
+	return events, nil
+}
+
+func (m *Storage) DeleteEventByIDs(ctx context.Context, ids []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, id := range ids {
+		delete(m.events, id)
+	}
+	return nil
+}
+
 func New() *Storage {
 	return &Storage{
 		events: map[string]*calendar.Event{},
