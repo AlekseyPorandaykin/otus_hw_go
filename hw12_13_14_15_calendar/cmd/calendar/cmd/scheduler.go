@@ -22,16 +22,19 @@ var schedulerCmd = &cobra.Command{
 		defer cancel()
 		conf, err := config.NewSchedulerApp(configFile)
 		if err != nil {
-			log.Panic("Error create config: ", err)
+			log.Println("Error create config: ", err)
+			return
 		}
 		appLog, err := logger.New(conf.Logger)
 		if err != nil {
-			log.Panic("Error create app logger: ", err)
+			log.Println("Error create app logger: ", err)
+			return
 		}
 		sender := ampq.NewProducer(ampq.NewConnection(conf.Producer, appLog), appLog)
 		db, err := storage.CreateStorage(conf.Database)
 		if err != nil {
-			log.Panic("Error create storage: " + err.Error())
+			log.Println("Error create storage: " + err.Error())
+			return
 		}
 		app := scheduler.New(appLog, db, sender, conf.Scheduler)
 

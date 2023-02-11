@@ -85,6 +85,8 @@ func (m *Storage) GetEventsWithRemindStatus(
 }
 
 func (m *Storage) UpdateRemindStatus(ctx context.Context, id string, status calendar.RemindStatus) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if e, ok := m.events[id]; ok && e != nil {
 		e.RemindStatus = status
 	}
@@ -102,6 +104,8 @@ func (m *Storage) GetOldEventIDs(ctx context.Context, oldTime time.Time) ([]stri
 }
 
 func (m *Storage) DeleteEventByIDs(ctx context.Context, ids []string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	for _, id := range ids {
 		delete(m.events, id)
 	}

@@ -21,15 +21,18 @@ var senderCmd = &cobra.Command{
 		defer cancel()
 		conf, err := config.NewSenderApp(configFile)
 		if err != nil {
-			log.Panic("Error create config: ", err)
+			log.Println("Error create config: ", err)
+			return
 		}
 		appLog, err := logger.New(conf.Logger)
 		if err != nil {
-			log.Panic("Error create app logger: ", err)
+			log.Println("Error create app logger: ", err)
+			return
 		}
 		con := ampq.NewConnection(conf.Consumer, appLog)
 		if err != nil {
-			log.Panic("Error create storage: " + err.Error())
+			log.Println("Error create storage: " + err.Error())
+			return
 		}
 		consumer := ampq.NewConsumer(con, appLog)
 

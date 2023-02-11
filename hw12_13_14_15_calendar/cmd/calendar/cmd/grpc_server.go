@@ -22,26 +22,30 @@ var grpcServerCmd = &cobra.Command{
 		defer cancel()
 		conf, err := config.New(configFile)
 		if err != nil {
-			log.Panic("Error create config: " + err.Error())
+			log.Println("Error create config: " + err.Error())
+			return
 		}
 		appLog, err := logger.New(conf.Logger)
 		if err != nil {
-			log.Panic("Error create app logger: " + err.Error())
+			log.Println("Error create app logger: " + err.Error())
+			return
 		}
 		serverLog, err := logger.New(conf.GrpcLogger)
 		if err != nil {
-			log.Panic("Error create server logger: " + err.Error())
+			log.Println("Error create server logger: " + err.Error())
+			return
 		}
 
 		s, err := storage.CreateStorage(conf.Database)
 		if err != nil {
-			log.Panic("Error create storage: " + err.Error())
+			log.Println("Error create storage: " + err.Error())
+			return
 		}
 
 		server := grpc.NewServer(serverLog, app.New(appLog, s), conf.GrpcServer)
 		go func() {
 			if err := server.Listen(ctx); err != nil {
-				log.Println(err)
+				log.Println("Error execute app: " + err.Error())
 				cancel()
 			}
 		}()
