@@ -33,10 +33,11 @@ type Connection struct {
 	status        int
 
 	muClose          sync.Mutex
-	closeSubscribers []chan interface{}
+	closeSubscribers []chan struct{}
 
 	muCreate          sync.Mutex
-	createSubscribers []chan interface{}
+	createSubscribers []chan struct{}
+	signal            struct{}
 }
 
 func (c *Connection) Connect(ctx context.Context) error {
@@ -57,13 +58,13 @@ func (c *Connection) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (c *Connection) AddCreateSubscriber(sub chan interface{}) {
+func (c *Connection) AddCreateSubscriber(sub chan struct{}) {
 	c.muCreate.Lock()
 	defer c.muCreate.Unlock()
 	c.createSubscribers = append(c.createSubscribers, sub)
 }
 
-func (c *Connection) AddCloseSubscriber(sub chan interface{}) {
+func (c *Connection) AddCloseSubscriber(sub chan struct{}) {
 	c.muClose.Lock()
 	defer c.muClose.Unlock()
 	c.closeSubscribers = append(c.closeSubscribers, sub)
@@ -85,9 +86,10 @@ func NewConnection(cfg *queue.Config, log logger.Logger) *Connection {
 		cfg:               cfg,
 		log:               log,
 		brokerErrChan:     make(chan *amqp.Error),
-		createSubscribers: make([]chan interface{}, 0),
-		closeSubscribers:  make([]chan interface{}, 0),
+		createSubscribers: make([]chan struct{}, 0),
+		closeSubscribers:  make([]chan struct{}, 0),
 		status:            notInitStatus,
+		signal:            struct{}{},
 	}
 }
 
@@ -210,12 +212,12 @@ func (c *Connection) setupSubscribes() {
 
 func (c *Connection) notifyCreateSubscribers() {
 	for _, subscriber := range c.createSubscribers {
-		subscriber <- 1
+		subscriber <- c.signal
 	}
 }
 
 func (c *Connection) notifyCloseSubscribers() {
 	for _, subscriber := range c.closeSubscribers {
-		subscriber <- 1
+		subscriber <- c.signal
 	}
 }

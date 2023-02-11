@@ -13,10 +13,10 @@ services:
       POSTGRES_PASSWORD: developer
     networks:
       - calendar
-  go16:
+  otus-env:
     build:
       context: ./
-      dockerfile: go16.Dockerfile
+      dockerfile: otus_env.Dockerfile
     volumes:
       - ./../:/app
     networks:

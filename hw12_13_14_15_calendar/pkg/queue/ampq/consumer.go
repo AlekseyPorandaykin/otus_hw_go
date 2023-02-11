@@ -11,16 +11,16 @@ import (
 type Consumer struct {
 	con              *Connection
 	log              logger.Logger
-	createConsumerCh chan interface{}
-	closeConsumerCh  chan interface{}
+	createConsumerCh chan struct{}
+	closeConsumerCh  chan struct{}
 }
 
 func NewConsumer(con *Connection, log logger.Logger) *Consumer {
 	return &Consumer{
 		con:              con,
 		log:              log,
-		createConsumerCh: make(chan interface{}),
-		closeConsumerCh:  make(chan interface{}),
+		createConsumerCh: make(chan struct{}),
+		closeConsumerCh:  make(chan struct{}),
 	}
 }
 
