@@ -8,6 +8,7 @@ import (
 
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/config"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/sender"
+	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/internal/storage"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/pkg/logger"
 	"github.com/AlekseyPorandaykin/otus_hw_go/hw12_13_14_15_calendar/pkg/queue/ampq"
 	"github.com/spf13/cobra"
@@ -35,8 +36,13 @@ var senderCmd = &cobra.Command{
 			return
 		}
 		consumer := ampq.NewConsumer(con, appLog)
+		db, err := storage.CreateStorage(conf.Database)
+		if err != nil {
+			log.Println("Error create storage: " + err.Error())
+			return
+		}
 
-		app := sender.NewSender(consumer, appLog)
+		app := sender.NewSender(consumer, sender.NewLoggingSaver(appLog, db))
 		go func() {
 			if err := app.Run(ctx); err != nil {
 				log.Println(err)

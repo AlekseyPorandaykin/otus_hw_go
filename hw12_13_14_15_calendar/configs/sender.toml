@@ -5,9 +5,19 @@ error_output_paths = ["stderr"]
 
 [consumer]
 user="guest"
-password="guest"
-host="0.0.0.0"
+password=""
+host="rabbitmq"
 port="5672"
-queue_name="test_consumer"
-consumer_name="calendar-app"
+queue_name=""
+consumer_name=""
 max_retries=20
+
+[database]
+driver = "postgres"
+host = "pgs"
+port = "5432"
+storage = "sql"
+user = ""
+db_name = ""
+password = ""
+ssl_mode = "disable"

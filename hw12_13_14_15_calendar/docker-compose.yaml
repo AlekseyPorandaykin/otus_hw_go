@@ -1,0 +1,96 @@
+version: "3.4"
+
+services:
+  pgs:
+    image: postgres:15
+    restart: always
+    ports:
+      - "3307:3306"
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ${DATABASE_DB}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    networks:
+      - calendar
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - calendar
+  app-http:
+    build:
+      context: ./
+      dockerfile: ./deployments/app.Dockerfile
+      target: app
+    networks:
+      - calendar
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_DB_NAME: ${DATABASE_DB}
+    command:
+      - "--config=/app/configs/config.toml"
+    ports:
+      - "8080:8080"
+    expose:
+      - 8080
+    tty: true
+  app-scheduler:
+    build:
+      context: ./
+      dockerfile: ./deployments/app.Dockerfile
+      target: app
+    networks:
+      - calendar
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_DB_NAME: ${DATABASE_DB}
+      PRODUCER_USER: ${RABBIT_MQ_USER}
+      PRODUCER_PASSWORD: ${RABBIT_MQ_PASSWORD}
+      PRODUCER_QUEUE_NAME: ${RABBIT_MQ_QUEUE_NAME}
+      PRODUCER_CONSUMER_NAME: ${RABBIT_MQ_CONSUMER_NAME}
+    command:
+      - "scheduler"
+      - "--config=/app/configs/scheduler.toml"
+    tty: true
+  app-sender:
+    build:
+      context: ./
+      dockerfile: ./deployments/app.Dockerfile
+      target: app
+    networks:
+      - calendar
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_DB_NAME: ${DATABASE_DB}
+      CONSUMER_USER: ${RABBIT_MQ_USER}
+      CONSUMER_PASSWORD: ${RABBIT_MQ_PASSWORD}
+      CONSUMER_QUEUE_NAME: ${RABBIT_MQ_QUEUE_NAME}
+      CONSUMER_CONSUMER_NAME: ${RABBIT_MQ_CONSUMER_NAME}
+    command:
+      - "sender"
+      - "--config=/app/configs/sender.toml"
+    tty: true
+  integration-tests:
+    build:
+      context: ./tests
+      dockerfile: ./Dockerfile
+    networks:
+      - calendar
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_DB: ${DATABASE_DB}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_HOST: ${DATABASE_HOST}
+      CALENDAR_HOST: ${CALENDAR_HOST}
+      CALENDAR_PORT: ${CALENDAR_PORT}
+    tty: true
+networks:
+  calendar:
+    driver: bridge

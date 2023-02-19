@@ -187,6 +187,21 @@ func (s *SQLStorage) DeleteEventByIDs(ctx context.Context, ids []string) error {
 	return err
 }
 
+const saveLogQuery = `
+INSERT INTO 
+    public.logs(event_id, body, created_at)
+	VALUES 
+	    ($1,$2, $3)
+	`
+
+func (s *SQLStorage) Save(ctx context.Context, eventID string, body []byte, date time.Time) error {
+	_, err := s.db.ExecContext(ctx, saveLogQuery, eventID, body, date)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *SQLStorage) Close(ctx context.Context) error {
 	if s.db == nil {
 		return ErrNotInitDB

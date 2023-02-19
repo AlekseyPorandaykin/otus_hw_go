@@ -42,16 +42,19 @@ type SenderApp struct {
 }
 
 func New(pathToFile string) (Config, error) {
-	conf, err := config.CreateConfig(pathToFile, "toml", Config{})
-	return conf.(Config), err
+	conf := Config{}
+	_, err := config.CreateConfig(pathToFile, "toml", &conf)
+	return conf, err
 }
 
 func NewSchedulerApp(pathToFile string) (SchedulerApp, error) {
-	conf, err := config.CreateConfig(pathToFile, "toml", SchedulerApp{})
-	return conf.(SchedulerApp), err
+	conf := SchedulerApp{}
+	_, err := config.CreateConfig(pathToFile, "toml", &conf)
+	return conf, err
 }
 
 func NewSenderApp(pathToFile string) (SenderApp, error) {
-	conf, err := config.CreateConfig(pathToFile, "toml", SenderApp{})
-	return conf.(SenderApp), err
+	conf := SenderApp{}
+	_, err := config.CreateConfig(pathToFile, "toml", &conf)
+	return conf, err
 }

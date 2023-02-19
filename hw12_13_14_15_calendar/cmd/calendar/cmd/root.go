@@ -21,7 +21,6 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 		defer cancel()
-
 		conf, err := config.New(configFile)
 		if err != nil {
 			log.Println("Error create config: " + err.Error())

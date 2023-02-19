@@ -11,14 +11,29 @@ import (
 
 var ErrNotExist = errors.New("event not exist")
 
+type log struct {
+	body []byte
+	date time.Time
+}
+
 type Storage struct {
-	mu     sync.RWMutex
-	events map[string]*calendar.Event
+	muEvents sync.RWMutex
+	events   map[string]*calendar.Event
+
+	muLogs sync.RWMutex
+	logs   map[string]log
+}
+
+func (m *Storage) Save(ctx context.Context, eventID string, body []byte, date time.Time) error {
+	m.muLogs.Lock()
+	defer m.muLogs.Unlock()
+	m.logs[eventID] = log{body: body, date: date}
+	return nil
 }
 
 func (m *Storage) CreateEvent(ctx context.Context, e *calendar.Event) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.muEvents.Lock()
+	defer m.muEvents.Unlock()
 	m.events[e.ID] = e
 	return nil
 }
@@ -31,22 +46,22 @@ func (m *Storage) UpdateEvent(ctx context.Context, e *calendar.Event) error {
 	if e == nil {
 		return ErrNotExist
 	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.muEvents.Lock()
+	defer m.muEvents.Unlock()
 	m.events[e.ID] = e
 	return nil
 }
 
 func (m *Storage) DeleteEvent(ctx context.Context, id string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.muEvents.Lock()
+	defer m.muEvents.Unlock()
 	delete(m.events, id)
 	return nil
 }
 
 func (m *Storage) EventByID(ctx context.Context, id string) (*calendar.Event, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.muEvents.Lock()
+	defer m.muEvents.Unlock()
 	return m.events[id], nil
 }
 
@@ -85,8 +100,8 @@ func (m *Storage) GetEventsWithRemindStatus(
 }
 
 func (m *Storage) UpdateRemindStatus(ctx context.Context, id string, status calendar.RemindStatus) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.muEvents.Lock()
+	defer m.muEvents.Unlock()
 	if e, ok := m.events[id]; ok && e != nil {
 		e.RemindStatus = status
 	}
@@ -104,8 +119,8 @@ func (m *Storage) GetOldEventIDs(ctx context.Context, oldTime time.Time) ([]stri
 }
 
 func (m *Storage) DeleteEventByIDs(ctx context.Context, ids []string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.muEvents.Lock()
+	defer m.muEvents.Unlock()
 	for _, id := range ids {
 		delete(m.events, id)
 	}
@@ -115,5 +130,6 @@ func (m *Storage) DeleteEventByIDs(ctx context.Context, ids []string) error {
 func New() *Storage {
 	return &Storage{
 		events: map[string]*calendar.Event{},
+		logs:   map[string]log{},
 	}
 }
