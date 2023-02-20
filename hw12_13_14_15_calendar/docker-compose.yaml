@@ -11,6 +11,13 @@ services:
       POSTGRES_DB: ${DATABASE_DB}
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - ./migrations/:/docker-entrypoint-initdb.d
     networks:
       - calendar
   rabbitmq:
@@ -35,6 +42,9 @@ services:
       - "--config=/app/configs/config.toml"
     ports:
       - "8080:8080"
+    depends_on:
+      pgs:
+        condition: service_healthy
     expose:
       - 8080
     tty: true
@@ -45,6 +55,13 @@ services:
       target: app
     networks:
       - calendar
+    depends_on:
+      pgs:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      app-http:
+        condition: service_started
     environment:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_USER: ${DATABASE_USER}
@@ -64,6 +81,13 @@ services:
       target: app
     networks:
       - calendar
+    depends_on:
+      pgs:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      app-scheduler:
+        condition: service_started
     environment:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_USER: ${DATABASE_USER}
@@ -90,6 +114,13 @@ services:
       DATABASE_HOST: ${DATABASE_HOST}
       CALENDAR_HOST: ${CALENDAR_HOST}
       CALENDAR_PORT: ${CALENDAR_PORT}
+    depends_on:
+      app-http:
+        condition: service_started
+      app-scheduler:
+        condition: service_started
+      app-sender:
+        condition: service_started
     tty: true
 networks:
   calendar:

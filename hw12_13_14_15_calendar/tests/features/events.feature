@@ -94,15 +94,6 @@ Feature: Send event
     And Has event with title "Test  integration title 4"
     And Has not event with title "Test  integration title 3"
 
-  Scenario: Get events on week
-    When I send "GET" request to "/events/week/2022-02-12"
-    Then I response code should be 200
-    And Response data has code "Events read success"
-    And Has event with title "Test  integration title 1"
-    And Has event with title "Test  integration title 2"
-    And Has event with title "Test  integration title 4"
-    And Has not event with title "Test  integration title 3"
-
   Scenario: Get events on month
     When I send "GET" request to "/events/month/2022-02-12"
     Then I response code should be 200

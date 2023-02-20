@@ -50,12 +50,12 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 up:
-	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache pgs rabbitmq
-	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) up -d pgs rabbitmq
-	sleep 5
-	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) exec pgs psql -U calendar -d calendar -c "$(MIGRATE_SQL)"
-	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache app-http app-scheduler app-sender
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) up -d app-http app-scheduler app-sender
+
+up-dev:
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache pgs rabbitmq app-http app-scheduler app-sender
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) up -d app-http app-scheduler app-sender
+
 down:
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) down
 
@@ -80,6 +80,13 @@ go-fix:
 	docker-compose --file=$(DOCKER_COMPOSE_DEV_FILE) run ubuntu gofumpt -l -w /app
 
 integration-tests:
+	set -e ;\
+	test_status_code=0 ;\
+	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) run integration-tests go test || test_status_code=$$? ;\
+	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) stop integration-tests ;\
+	exit $$test_status_code ;
+
+integration-tests-dev:
 	set -e ;\
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache integration-tests
 	test_status_code=0 ;\

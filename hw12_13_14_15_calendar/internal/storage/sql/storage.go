@@ -196,10 +196,7 @@ INSERT INTO
 
 func (s *SQLStorage) Save(ctx context.Context, eventID string, body []byte, date time.Time) error {
 	_, err := s.db.ExecContext(ctx, saveLogQuery, eventID, body, date)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (s *SQLStorage) Close(ctx context.Context) error {
