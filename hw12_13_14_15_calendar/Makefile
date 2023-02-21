@@ -57,7 +57,7 @@ up-dev:
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) up -d app-http app-scheduler app-sender
 
 down:
-	docker-compose --file=$(DOCKER_COMPOSE_FILE) down
+	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) down
 
 recreate:
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) rm -f
@@ -83,7 +83,7 @@ integration-tests:
 	set -e ;\
 	test_status_code=0 ;\
 	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) run integration-tests go test || test_status_code=$$? ;\
-	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) stop integration-tests ;\
+	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) down ;\
 	exit $$test_status_code ;
 
 integration-tests-dev:
@@ -91,7 +91,7 @@ integration-tests-dev:
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache integration-tests
 	test_status_code=0 ;\
 	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) run integration-tests go test || test_status_code=$$? ;\
-	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) stop integration-tests ;\
+	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) down ;\
 	exit $$test_status_code ;
 clear:
 	docker system prune --volumes
