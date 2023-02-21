@@ -115,6 +115,8 @@ services:
       CALENDAR_HOST: ${CALENDAR_HOST}
       CALENDAR_PORT: ${CALENDAR_PORT}
     depends_on:
+      pgs:
+        condition: service_healthy
       app-http:
         condition: service_started
       app-scheduler:
