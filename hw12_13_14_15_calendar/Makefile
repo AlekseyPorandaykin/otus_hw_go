@@ -52,7 +52,7 @@ lint: install-lint-deps
 up:
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) up -d app-http app-scheduler app-sender
 
-up-dev:
+up-no-cache:
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache pgs rabbitmq app-http app-scheduler app-sender
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) up -d app-http app-scheduler app-sender
 
@@ -86,8 +86,9 @@ integration-tests:
 	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) down ;\
 	exit $$test_status_code ;
 
-integration-tests-dev:
+integration-tests-no-cache:
 	set -e ;\
+	make up-no-cache
 	docker-compose --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) build --no-cache integration-tests
 	test_status_code=0 ;\
 	docker-compose  --file=$(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) run integration-tests go test || test_status_code=$$? ;\
