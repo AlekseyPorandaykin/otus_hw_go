@@ -42,7 +42,7 @@ func (c *Consumer) Listen(ctx context.Context, h queue.Handler) error {
 			if message.Body == nil {
 				continue
 			}
-			if errH := h.Handle(message); errH != nil {
+			if errH := h.Handle(ctx, message); errH != nil {
 				c.log.Error("Error handle message", zap.Error(errH))
 				if errR := message.Reject(false); errR != nil {
 					return queue.ConsumeError.Wrap(errR)

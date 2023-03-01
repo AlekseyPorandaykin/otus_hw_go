@@ -22,5 +22,13 @@ CREATE TABLE IF NOT EXISTS events  (
 alter table events
     owner to calendar;
 
+CREATE TABLE IF NOT EXISTS logs (
+    event_id VARCHAR ( 50 ),
+    body TEXT  NOT NULL,
+    created_at TIMESTAMP NOT NULL
+    );
+alter table logs
+    owner to calendar;
+
 INSERT INTO users(id, user_name) VALUES (1, 'test_user')
     ON CONFLICT (id) DO NOTHING;

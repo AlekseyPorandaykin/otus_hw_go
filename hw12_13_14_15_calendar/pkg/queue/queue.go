@@ -32,7 +32,7 @@ type Producer interface {
 }
 
 type Handler interface {
-	Handle(d *Message) error
+	Handle(ctx context.Context, d *Message) error
 }
 
 type Consumer interface {

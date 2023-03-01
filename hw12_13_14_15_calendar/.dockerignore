@@ -1,0 +1,6 @@
+./docs
+./vendor
+./.gitignore
+./Makefile
+./deployments
+./build
